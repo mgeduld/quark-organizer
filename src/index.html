@@ -1,0 +1,17 @@
+<!doctype html>
+
+<head>
+  <link rel="stylesheet" type="text/css" href="main.css" />
+  <script src="answers.js"></script>
+  <title>My Quora Answers</title>
+</head>
+
+<body>
+  <div id="content"></div>
+  <script>
+    const content = data.map(record => {
+      return `<li><a href="answers/${record.id}.html">${record.title}</a></li>`;
+    }).join('');
+    document.getElementById('content').innerHTML = '<ul>' + content + '</ul>';
+  </script>
+</body>
