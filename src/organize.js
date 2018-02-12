@@ -1,15 +1,16 @@
 const { JSDOM } = require("jsdom");
 const promisify = require("fs-promisify");
 const fs = require("fs-extra");
-const shortid = require("shortid");
 const progress = require("cli-progress");
 const normalizePath = require("normalize-path");
 const path = require("path");
+const { getHtml } = require("./answer-html");
+
 const readFile = promisify(fs.readFile);
 const writeFile = promisify(fs.writeFile);
 const [_, __, quarkivePath, outputDirName = __dirname + "/quarkive", quarkiveAssetsPath] = process.argv;
 const outputDir = normalizePath(outputDirName);
-const { getHtml } = require("./answer-html");
+let answerCounter = 0;
 
 if (!quarkivePath) {
   throw new Error("You must specify the path to a source file, e.g. ./quarkive.html");
@@ -33,11 +34,11 @@ const initStatusMessage = (max) => {
 
 const processAnswer = (toc, bar) => async (answer, index) => {
   try {
-    const id = shortid.generate();
     const link = answer.dataset["quark_link"];
     const date = answer.querySelector(".quark_date").textContent;
     const epoch = new Date(date).getTime();
     const title = answer.querySelector(".quark_title").textContent;
+    const id = title.replace(/\s/g, "_").replace(/\W/g, "").replace(/_/g, "-");
     const content = answer.querySelector(".quark_content");
     const record = { id, link, date, epoch, title };
     toc.push(record);
