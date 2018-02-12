@@ -9,6 +9,7 @@ const getHtml = ({ id, link, title, date, epoch }, content) => `
     <body>
       <div class="quark_answer answer_${id}">
         <header>
+          <a class="quark_home_nav" href="../index.html">[home]</a>
           <h1 class="quark_title">${title}</h1>
           <div class="quark_meta">
             <div class="quark_id">${id}</div>
@@ -18,9 +19,11 @@ const getHtml = ({ id, link, title, date, epoch }, content) => `
               <a href="${link}">[read on quora]</a>
             </span>
           </div>
-      </header>
+        </header>
       <main class="quark_content">${content}</main>
-      <footer></footer>
+      <footer>
+        <a class="quark_home_nav" href="../index.html">[home]</a>
+      </footer>
     </div>
     <script src="answer-script.js"></script>
     <script>quarkPostProcess()</script>
