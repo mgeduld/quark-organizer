@@ -46,7 +46,7 @@ If you forget to do this, you can fix your image links by manually copying the e
 
 The table-of-contents file is styled by `OUTPUT-PATH/quarkive/main.css` and the answers are styled by `OUTPUT-PATH/quarkive/answers/answer.css`. You can edit these files to change look of the TOC and the answers.
 
-The answers use `src/answer-html` as their page template. And the toc (`index.html`) uses `src/index.html.` Edit these with care. 
+The answers use `src/answer-html` as their page template. And the toc (`index.html`) uses `src/index.html.`
 
 If you've already run Quark Organizer, it's too late to edit `answer-html`. If you've made changes, you'll have to run Quark Organizer again. 
 
