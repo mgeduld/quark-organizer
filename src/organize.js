@@ -17,8 +17,7 @@ if (!quarkivePath) {
 
 const getAnswers = async () => {
   console.log("Parsing answers. Please be patient ...");
-  const data = await readFile(quarkivePath, "utf8");
-  const dom = new JSDOM(data);
+  const dom = await JSDOM.fromFile(quarkivePath);
   const answers = Array.from(
     dom.window.document.querySelectorAll(".quark_answer")
   );
@@ -33,18 +32,20 @@ const initStatusMessage = (max) => {
 }
 
 const processAnswer = (toc, bar) => async (answer, index) => {
-  const id = shortid.generate();
-  const link = answer.dataset["quark_link"];
-  const date = answer.querySelector(".quark_date").textContent;
-  const epoch = new Date(date).getTime();
-  const title = answer.querySelector(".quark_title").textContent;
-  const content = answer.querySelector(".quark_content");
-  const record = { id, link, date, epoch, title };
-  toc.push(record);
-  await writeFile(
-    outputDir + "/quarkive/answers/" + id + ".html",
-    getHtml(record, content.innerHTML)
-  );
+  try {
+    const id = shortid.generate();
+    const link = answer.dataset["quark_link"];
+    const date = answer.querySelector(".quark_date").textContent;
+    const epoch = new Date(date).getTime();
+    const title = answer.querySelector(".quark_title").textContent;
+    const content = answer.querySelector(".quark_content");
+    const record = { id, link, date, epoch, title };
+    toc.push(record);
+    await writeFile(
+      outputDir + "/quarkive/answers/" + id + ".html",
+      getHtml(record, content.innerHTML)
+    );
+  } catch (e) { }
 };
 
 const init = async () => {
@@ -66,10 +67,11 @@ const init = async () => {
     outputDir + "/quarkive/answers.js",
     "var data = " + JSON.stringify(toc)
   );
-  console.log("quarkive dir created at. Open", outputDir + "/quarkive/index.html");
+  console.log("quarkive directory created. Open", outputDir + "/quarkive/index.html");
   fs.copySync(path.resolve(__dirname, "./index.html"), outputDir + "/quarkive/index.html");
   fs.copySync(path.resolve(__dirname, "./main.css"), outputDir + "/quarkive/main.css");
   fs.copySync(path.resolve(__dirname, "./answer.css"), outputDir + "/quarkive/answers/answer.css");
+  fs.copySync(path.resolve(__dirname, "./answer-script.js"), outputDir + "/quarkive/answers/answer-script.js");
   if (quarkiveAssetsPath) {
     const assetsPath = normalizePath(quarkiveAssetsPath);
     const pathParts = assetsPath.split(path.sep);

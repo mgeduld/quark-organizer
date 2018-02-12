@@ -20,7 +20,10 @@ const getHtml = ({ id, link, title, date, epoch }, content) => `
           </div>
       </header>
       <main class="quark_content">${content}</main>
+      <footer></footer>
     </div>
+    <script src="answer-script.js"></script>
+    <script>quarkPostProcess()</script>
   </body>
 </html>`;
 
