@@ -5,6 +5,7 @@ const progress = require("cli-progress");
 const normalizePath = require("normalize-path");
 const path = require("path");
 const { getHtml } = require("./answer-html");
+const loki = require("lokijs");
 
 const readFile = promisify(fs.readFile);
 const writeFile = promisify(fs.writeFile);
@@ -32,7 +33,7 @@ const initStatusMessage = (max) => {
   return bar;
 }
 
-const processAnswer = (toc, bar) => async (answer, index) => {
+const processAnswer = (toc, bar, answersCollection) => async (answer, index) => {
   try {
     const link = answer.dataset["quark_link"];
     const date = answer.querySelector(".quark_date").textContent;
@@ -42,11 +43,18 @@ const processAnswer = (toc, bar) => async (answer, index) => {
     const content = answer.querySelector(".quark_content");
     const record = { id, link, date, epoch, title };
     toc.push(record);
+    answersCollection.insert(Object.assign({}, record, { date: epoch, display: true, favorite: false, topics: [], tags: [] }))
     await writeFile(
       outputDir + "/quarkive/answers/" + id + ".html",
       getHtml(record, content.innerHTML)
     );
   } catch (e) { }
+};
+
+const makeDb = () => {
+  const db = new loki(outputDir + "/quarkive/answers/answers.json");
+  const answers = db.addCollection("answers");
+  return [db, answers];
 };
 
 const init = async () => {
@@ -55,15 +63,17 @@ const init = async () => {
   // chmod?
   fs.mkdirSync(outputDir + "/quarkive", () => { });
   fs.mkdirSync(outputDir + "/quarkive/answers", () => { });
+  const [db, answersCollection] = makeDb();
   const toc = [];
   const bar = initStatusMessage(totalAnswers);
   let counter = 0;
   while (counter < totalAnswers) {
-    await processAnswer(toc, bar)(answers[counter]);
+    await processAnswer(toc, bar, answersCollection)(answers[counter]);
     bar.increment();
     counter++;
   };
   bar.stop();
+  db.save();
   await writeFile(
     outputDir + "/quarkive/answers.js",
     "var data = " + JSON.stringify(toc)
