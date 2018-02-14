@@ -33,21 +33,40 @@ const initStatusMessage = (max) => {
   return bar;
 }
 
+const getAnswerParts = (answer) => {
+  const link = answer.dataset["quark_link"];
+  const date = answer.querySelector(".quark_date").textContent;
+  const epoch = new Date(date).getTime();
+  const title = answer.querySelector(".quark_title").textContent;
+  const id = title.replace(/\s/g, "_").replace(/\W/g, "").replace(/_/g, "-");
+  const content = answer.querySelector(".quark_content");
+  return { id, link, date, epoch, title, content };
+};
+
+const addAnswerToDb = (answersCollection, record, epoch) => {
+  answersCollection.insert(Object.assign({}, record, {
+    date: epoch,
+    display: true,
+    favorite: false,
+    topics: [],
+    tags: []
+  }));
+};
+
+const createAnswerFile = async (id, record, content) => {
+  await writeFile(
+    outputDir + "/quarkive/answers/" + id + ".html",
+    getHtml(record, content.innerHTML)
+  );
+};
+
 const processAnswer = async (toc, bar, answersCollection, answer) => {
   try {
-    const link = answer.dataset["quark_link"];
-    const date = answer.querySelector(".quark_date").textContent;
-    const epoch = new Date(date).getTime();
-    const title = answer.querySelector(".quark_title").textContent;
-    const id = title.replace(/\s/g, "_").replace(/\W/g, "").replace(/_/g, "-");
-    const content = answer.querySelector(".quark_content");
+    const { id, link, date, epoch, title, content } = getAnswerParts(answer);
     const record = { id, link, date, epoch, title };
     toc.push(record);
-    answersCollection.insert(Object.assign({}, record, { date: epoch, display: true, favorite: false, topics: [], tags: [] }))
-    await writeFile(
-      outputDir + "/quarkive/answers/" + id + ".html",
-      getHtml(record, content.innerHTML)
-    );
+    addAnswerToDb(answersCollection, record, epoch);
+    await createAnswerFile(id, record, content);
   } catch (e) { }
 };
 

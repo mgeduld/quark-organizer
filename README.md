@@ -53,3 +53,18 @@ If you've already run Quark Organizer, it's too late to edit `answer-html`. If y
 ## removing answers
 
 The TOC file (`index.html`) uses `OUTPUT-PATH/quarkive/answers.js` as its database. This is a javascript file that is mostly JSON. You can carefully edit it to remove answers from the TOC or to rename them.
+
+## todo / wish list
+
+- unit tests
+- typescript
+- error logging
+- ui for answer parsing, files
+- answer sorting
+- answer title editing
+- answer categorizing
+- answer tagging
+- answer favoriting
+- answer editing
+- answer replacing
+- adding new answers
