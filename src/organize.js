@@ -33,7 +33,7 @@ const initStatusMessage = (max) => {
   return bar;
 }
 
-const processAnswer = (toc, bar, answersCollection) => async (answer, index) => {
+const processAnswer = async (toc, bar, answersCollection, answer) => {
   try {
     const link = answer.dataset["quark_link"];
     const date = answer.querySelector(".quark_date").textContent;
@@ -57,39 +57,63 @@ const makeDb = () => {
   return [db, answers];
 };
 
-const init = async () => {
-  const answers = await getAnswers();
-  const totalAnswers = answers.length;
-  // chmod?
+const makeDirectories = () => {
   fs.mkdirSync(outputDir + "/quarkive", () => { });
   fs.mkdirSync(outputDir + "/quarkive/answers", () => { });
-  const [db, answersCollection] = makeDb();
-  const toc = [];
-  const bar = initStatusMessage(totalAnswers);
+};
+
+const answersForEach = async (toc, bar, answersCollection, answers) => {
+  const totalAnswers = answers.length;
   let counter = 0;
-  while (counter < totalAnswers) {
-    await processAnswer(toc, bar, answersCollection)(answers[counter]);
+  for (let counter = 0, totalAnswers = answers.length; counter < totalAnswers; counter++) {
+    await processAnswer(toc, bar, answersCollection, answers[counter]);
     bar.increment();
-    counter++;
-  };
-  bar.stop();
+  }
+};
+
+const processAnswers = async (answers) => {
+  const toc = [];
+  const totalAnswers = answers.length;
+  const [db, answersCollection] = makeDb();
+  const bar = initStatusMessage(totalAnswers);
+  await answersForEach(toc, bar, answersCollection, answers);
   db.save();
+  bar.stop();
+  return toc;
+};
+
+const writeAnswersFile = async (toc) => {
   await writeFile(
     outputDir + "/quarkive/answers.js",
     "var data = " + JSON.stringify(toc)
   );
-  console.log("quarkive directory created. Open", outputDir + "/quarkive/index.html");
-  fs.copySync(path.resolve(__dirname, "./index.html"), outputDir + "/quarkive/index.html");
-  fs.copySync(path.resolve(__dirname, "./main.css"), outputDir + "/quarkive/main.css");
-  fs.copySync(path.resolve(__dirname, "./answer.css"), outputDir + "/quarkive/answers/answer.css");
-  fs.copySync(path.resolve(__dirname, "./answer-script.js"), outputDir + "/quarkive/answers/answer-script.js");
+};
+
+const maybeCopyAssets = () => {
   if (quarkiveAssetsPath) {
     const assetsPath = normalizePath(quarkiveAssetsPath);
     const pathParts = assetsPath.split(path.sep);
     const lastPart = pathParts[pathParts.length - 1];
     fs.copySync(path.resolve(assetsPath + "/"), outputDir + "/quarkive/answers/" + lastPart);
   }
-  process.exit()
+};
+
+const copyAssets = () => {
+  fs.copySync(path.resolve(__dirname, "./index.html"), outputDir + "/quarkive/index.html");
+  fs.copySync(path.resolve(__dirname, "./main.css"), outputDir + "/quarkive/main.css");
+  fs.copySync(path.resolve(__dirname, "./answer.css"), outputDir + "/quarkive/answers/answer.css");
+  fs.copySync(path.resolve(__dirname, "./answer-script.js"), outputDir + "/quarkive/answers/answer-script.js");
+  maybeCopyAssets();
+};
+
+const init = async () => {
+  makeDirectories();
+  const answers = await getAnswers();
+  const toc = await processAnswers(answers);
+  await writeAnswersFile(toc);
+  copyAssets();
+  console.log("quarkive directory created. Open", outputDir + "/quarkive/index.html");
+  process.exit();
 };
 
 init();
